@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>HoVeDe</title>
+</head>
+<body>
+    <h1>HoVeDe</h1>
+    <h2>Libro de vuelo</h2>
+
+    <form action="/agregar" method="POST">
+        <input type="date" name="fecha" required>
+        <input type="text" name="matricula" placeholder="Matrícula" required>
+        <input type="text" name="desde" placeholder="Origen" required>
+        <input type="text" name="hasta" placeholder="Destino" required>
+        <input type="number" name="horas_vuelo"
+               placeholder="Horas de vuelo" min="0.01" step="0.01" required>
+        <button type="submit">Agregar vuelo</button>
+    </form>
+
+<h2>Vuelos registrados</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Fecha</th>
+        <th>Matrícula</th>
+        <th>Desde</th>
+        <th>Hasta</th>
+        <th>Horas</th>
+        <th>Acciones</th>
+    </tr>
+
+    {% for vuelo in vuelos %}
+    <tr>
+        <td>
+            <form id="editar-{{ vuelo[0] }}"
+                  action="/modificar/{{ vuelo[0] }}" method="POST"></form>
+            <input form="editar-{{ vuelo[0] }}" type="date"
+                   name="fecha" value="{{ vuelo[1] }}" required></td>
+        <td><input form="editar-{{ vuelo[0] }}" name="matricula"
+                   value="{{ vuelo[2] }}" required></td>
+        <td><input form="editar-{{ vuelo[0] }}" name="desde"
+                   value="{{ vuelo[3] }}" required></td>
+        <td><input form="editar-{{ vuelo[0] }}" name="hasta"
+                   value="{{ vuelo[4] }}" required></td>
+        <td><input form="editar-{{ vuelo[0] }}" type="number"
+                   name="horas_vuelo" value="{{ vuelo[5] }}"
+                   min="0.01" step="0.01" required></td>
+        <td>
+            <button form="editar-{{ vuelo[0] }}" type="submit">Guardar</button>
+
+            <form action="/eliminar/{{ vuelo[0] }}" method="POST"
+                  style="display:inline">
+                <button type="submit"
+                        onclick="return confirm('¿Eliminar este vuelo?')">
+                    Eliminar
+                </button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
