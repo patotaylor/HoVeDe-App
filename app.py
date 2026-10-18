@@ -2,6 +2,8 @@
 import os
 import psycopg
 from flask import Flask, render_template, request, redirect
+from datetime import datetime, timedelta
+from calculadora import calcular_tiempos, ultimo_aterrizaje, calcular_descanso
 
 app = Flask(__name__)
 
@@ -73,6 +75,39 @@ def eliminar(id):
             )
 
     return redirect("/")
+
+
+@app.route("/calculadora", methods=["GET", "POST"])
+def calculadora():
+    resultado = None
+    error = None
+
+    if request.method == "POST":
+        try:
+            checkin = datetime.fromisoformat(request.form["checkin"])
+            etd = datetime.fromisoformat(request.form["etd"])
+            eta = datetime.fromisoformat(request.form["eta"])
+
+            resultado = calcular_tiempos(checkin, etd, eta)
+            resultado["ultimo_aterrizaje"] = ultimo_aterrizaje(checkin)
+            resultado["excede_tsv"] = eta > resultado["ultimo_aterrizaje"]
+            tipo, horas, proxima = calcular_descanso(checkin,
+            resultado["fin_tsv"],
+            resultado["inicio_descanso"])
+            resultado["tipo_descanso"] = tipo
+            resultado["horas_descanso"] = horas
+            resultado["proxima_presentacion"] = proxima
+
+
+        except ValueError as e:
+            error = str(e)
+
+    return render_template(
+        "calculadora.html",
+        resultado=resultado,
+        error=error
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
