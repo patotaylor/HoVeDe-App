@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>HoVeDe - Calculadora</title>
+</head>
+<body>
+    <h1>HoVeDe</h1>
+    <a href="/">Volver al libro de vuelo</a>
+
+    <h2>Calculadora de actividad y descanso</h2>
+
+    <form method="POST">
+        <p>
+            <label>Presentación (Check-in):</label>
+            <input type="datetime-local" name="checkin" required>
+        </p>
+
+        <p>
+            <label>Despegue (ETD):</label>
+            <input type="datetime-local" name="etd" required>
+        </p>
+
+        <p>
+            <label>Aterrizaje (ETA):</label>
+            <input type="datetime-local" name="eta" required>
+        </p>
+
+        <button type="submit">Calcular</button>
+    </form>
+
+    {% if error %}
+        <p style="color:red">{{ error }}</p>
+    {% endif %}
+
+    {% if resultado %}
+        <h3>Resultados</h3>
+        <p>Duración TSV: {{ resultado.duracion_tsv }}</p>
+        <p>Fin TSV: {{ resultado.fin_tsv.strftime("%d/%m/%Y %H:%M") }}</p>
+        <p>Inicio descanso: {{ resultado.inicio_descanso.strftime("%d/%m/%Y %H:%M") }}</p>
+
+        <h3>Límites de actividad</h3>
+        <p>Último aterrizaje calculado:
+            {{ resultado.ultimo_aterrizaje.strftime("%d/%m/%Y %H:%M") }}
+        </p>
+
+        {% if resultado.excede_tsv %}
+            <p style="color:red">
+                Advertencia: se supera el límite de TSV calculado.
+            </p>
+        {% endif %}
+
+        <h3>Descanso aplicable</h3>
+        <p>Tipo: {{ resultado.tipo_descanso }}</p>
+        <p>Descanso mínimo: {{ resultado.horas_descanso }} horas</p>
+        <p>Próxima presentación:
+            {{ resultado.proxima_presentacion.strftime("%d/%m/%Y %H:%M") }}
+        </p>
+    {% endif %}
+</body>
+</html>
