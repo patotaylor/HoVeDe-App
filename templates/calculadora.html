@@ -2,60 +2,136 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>HoVeDe - Calculadora</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>HoVeDe</h1>
-    <a href="/">Volver al libro de vuelo</a>
+    {% macro selector_hora(nombre, campos) %}
+    {% set partes = campos.get(nombre ~ '_hora', '').split(':') %}
+        <label>Hora
+            <select name="{{ nombre }}_hh" required>
+                <option value="">HH</option>
+                {% for h in range(24) %}
+                {% set valor = '%02d'|format(h) %}
+                <option value="{{ valor }}"
+                        {% if partes[0] == valor %}selected{% endif %}>
+                    {{ valor }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
 
-    <h2>Calculadora de actividad y descanso</h2>
+        <label>Minutos
+            <select name="{{ nombre }}_mm" required>
+                <option value="">MM</option>
+                {% for m in range(60) %}
+                {% set valor = '%02d'|format(m) %}
+                <option value="{{ valor }}"
+                        {% if partes|length > 1 and partes[1] == valor %}selected{% endif %}>
+                    {{ valor }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+    {% endmacro %}
+    <header>
+        <h1>✈ HoVeDe</h1><p>Horas · Vencimientos · Descanso</p>
+        <nav><a href="/">Libro de vuelo</a><a href="/calculadora">Calculadora</a></nav>
+    </header>
+    <main>
+        <h2>Calculadora de actividad y descanso</h2>
+        <section class="seccion">
+            <h3>Buscar primer vuelo de la jornada</h3>
+            <p class="descripcion">Usamos solo el horario programado. La presentación se calcula una hora antes.</p>
+            <form action="/buscar-vuelo" method="POST" class="formulario">
+                <label>Número de vuelo
+                    <input name="numero" placeholder="Ej: AR1414" value="{{ campos.get('numero', '') }}" required>
+                </label>
+                <label>Fecha del vuelo
+                    <input type="date" name="fecha_busqueda" value="{{ campos.get('fecha_busqueda', '') }}" required>
+                </label>
+                <button type="submit">Buscar vuelo</button>
+            </form>
+        </section>
 
-    <form method="POST">
-        <p>
-            <label>Presentación (Check-in):</label>
-            <input type="datetime-local" name="checkin" required>
-        </p>
-
-        <p>
-            <label>Despegue (ETD):</label>
-            <input type="datetime-local" name="etd" required>
-        </p>
-
-        <p>
-            <label>Aterrizaje (ETA):</label>
-            <input type="datetime-local" name="eta" required>
-        </p>
-
-        <button type="submit">Calcular</button>
-    </form>
-
-    {% if error %}
-        <p style="color:red">{{ error }}</p>
-    {% endif %}
-
-    {% if resultado %}
-        <h3>Resultados</h3>
-        <p>Duración TSV: {{ resultado.duracion_tsv }}</p>
-        <p>Fin TSV: {{ resultado.fin_tsv.strftime("%d/%m/%Y %H:%M") }}</p>
-        <p>Inicio descanso: {{ resultado.inicio_descanso.strftime("%d/%m/%Y %H:%M") }}</p>
-
-        <h3>Límites de actividad</h3>
-        <p>Último aterrizaje calculado:
-            {{ resultado.ultimo_aterrizaje.strftime("%d/%m/%Y %H:%M") }}
-        </p>
-
-        {% if resultado.excede_tsv %}
-            <p style="color:red">
-                Advertencia: se supera el límite de TSV calculado.
-            </p>
+        {% if campos.get('matricula') or campos.get('desde') or campos.get('hasta') %}
+        <section class="seccion">
+            <h3>Vuelo encontrado</h3>
+            <div class="resultados-grid">
+                <div class="resultado"><span>Vuelo</span><strong>{{ campos.get('numero', '—') }}</strong></div>
+                <div class="resultado"><span>Matrícula</span><strong>{{ campos.get('matricula', '—') }}</strong></div>
+                <div class="resultado"><span>Desde / Hasta</span><strong>{{ campos.get('desde', '—') }} → {{ campos.get('hasta', '—') }}</strong></div>
+                <div class="resultado"><span>Salida programada local</span><strong>{{ campos.get('etd_fecha', '') }} {{ campos.get('etd_hora', '') }}</strong></div>
+                <div class="resultado"><span>Presentación local</span><strong>{{ campos.get('checkin_fecha', '') }} {{ campos.get('checkin_hora', '') }}</strong></div>
+            </div>
+            <p class="descripcion">Estos datos corresponden al primer vuelo, no a toda la jornada.</p>
+        </section>
         {% endif %}
 
-        <h3>Descanso aplicable</h3>
-        <p>Tipo: {{ resultado.tipo_descanso }}</p>
-        <p>Descanso mínimo: {{ resultado.horas_descanso }} horas</p>
-        <p>Próxima presentación:
-            {{ resultado.proxima_presentacion.strftime("%d/%m/%Y %H:%M") }}
-        </p>
-    {% endif %}
+        <section class="seccion">
+            <h3>Datos de la actividad</h3>
+            <p class="descripcion">Seleccioná la hora y los minutos de cada horario. Podés corregir cualquier dato sin empezar de nuevo.</p>
+            <form action="/calculadora" method="POST" class="formulario actividad">
+                {% for nombre in ('numero', 'fecha_busqueda', 'matricula', 'desde', 'hasta') %}
+                <input type="hidden" name="{{ nombre }}" value="{{ campos.get(nombre, '') }}">
+                {% endfor %}
+                <div class="horario-grupo">
+                    <strong>Presentación (Check-in)</strong>
+
+                    <label>
+                        Fecha
+                        <input type="date" name="checkin_fecha"
+                            value="{{ campos.get('checkin_fecha', '') }}" required>
+                    </label>
+                    {{ selector_hora('checkin', campos) }}
+                </div>
+
+                <div class="horario-grupo">
+                    <strong>Primer ETD</strong>
+                    <label>
+                        Fecha
+                        <input type="date" name="etd_fecha"
+                            value="{{ campos.get('etd_fecha', '') }}" required>
+                    </label>
+                    {{ selector_hora('etd', campos) }}
+                </div>
+                <div class="horario-grupo">
+                    <strong>Último ETA</strong>
+                    <label>
+                        Fecha
+                        <input type="date" name="eta_fecha"
+                            value="{{ campos.get('eta_fecha', '') }}" required>
+                    </label>
+                    {{ selector_hora('eta', campos) }}
+                </div>
+                <div class="acciones-formulario">
+                    <button type="submit">Calcular</button>
+                    <a class="boton secundario" href="/calculadora">Limpiar</a>
+                </div>
+            </form>
+        </section>
+        {% if error %}<section class="seccion"><p class="advertencia">{{ error }}</p></section>{% endif %}
+        {% if resultado %}
+        <section class="seccion">
+            <h3>Resultados de la actividad</h3>
+            <div class="resultados-grid">
+                <div class="resultado"><span>Duración TSV</span><strong>{{ resultado.duracion_tsv }}</strong></div>
+                <div class="resultado"><span>Fin TSV</span><strong>{{ resultado.fin_tsv.strftime('%d/%m/%Y %H:%M') }}</strong></div>
+                <div class="resultado"><span>Inicio descanso</span><strong>{{ resultado.inicio_descanso.strftime('%d/%m/%Y %H:%M') }}</strong></div>
+                <div class="resultado destacado"><span>Último aterrizaje calculado</span><strong>{{ resultado.ultimo_aterrizaje.strftime('%d/%m/%Y %H:%M') }}</strong></div>
+            </div>
+            {% if resultado.excede_tsv %}<p class="advertencia">Advertencia: se supera el límite de TSV calculado.</p>{% endif %}
+        </section>
+        <section class="seccion">
+            <h3>Descanso aplicable</h3>
+            <div class="resultados-grid">
+                <div class="resultado"><span>Tipo de descanso</span><strong>{{ resultado.tipo_descanso }}</strong></div>
+                <div class="resultado"><span>Descanso mínimo</span><strong>{{ resultado.horas_descanso }} horas</strong></div>
+                <div class="resultado destacado"><span>Próxima presentación</span><strong>{{ resultado.proxima_presentacion.strftime('%d/%m/%Y %H:%M') }}</strong></div>
+            </div>
+        </section>
+        {% endif %}
+    </main>
 </body>
 </html>
