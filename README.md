@@ -104,7 +104,9 @@ Ingresar desde el navegador a:
 
 **http://localhost:5000**
 
-La aplicación funciona sin configurar una clave de RapidAPI. En ese caso, la búsqueda automática de vuelos no estará disponible, pero el libro de vuelo y la calculadora manual sí.
+HoVeDe incluye una API Key temporal de demostración de AeroDataBox, que Docker Compose carga automáticamente desde `.env.example`. Durante el período de evaluación, la búsqueda de vuelos reales estará disponible sin configuración adicional.
+
+Una vez revocada esa clave, el libro de vuelo y la calculadora manual seguirán funcionando. Para recuperar la búsqueda automática, será necesario configurar una API Key propia.
 
 ### 4. Comprobar los contenedores
 
@@ -211,9 +213,21 @@ Luego abrir:
 
 http://localhost:5000
 
-Este ejemplo utiliza la contraseña local de demostración predeterminada en `compose.yaml`. Si se configuró otra contraseña en `.env`, debe utilizarse la misma en `docker run`.
+En esta ejecución individual no se configura una API Key, por lo que la búsqueda automática de vuelos no estará disponible. El libro de vuelo y la calculadora manual seguirán funcionando.
+
+Para probar la integración con AeroDataBox utilizando la clave de demostración incluida, se recomienda iniciar la aplicación mediante Docker Compose.
+
+Este ejemplo utiliza la contraseña local de demostración definida en `compose.yaml`. Si se modifica la variable `DB_PASSWORD` utilizada por PostgreSQL, debe indicarse la misma contraseña en el comando `docker run`.
 
 Para detener el contenedor iniciado manualmente, presionar `Ctrl + C`.
+
+Para detener también el servicio PostgreSQL iniciado mediante Compose, ejecutar:
+
+```powershell
+docker compose down
+```
+
+Este comando detiene el servicio PostgreSQL utilizado en la prueba individual, sin eliminar el volumen donde se almacenan los vuelos.
 
 ## Desinstalación y limpieza
 
@@ -228,6 +242,14 @@ docker compose down --volumes --rmi local --remove-orphans
 ```
 
 Este comando elimina los contenedores del proyecto, su red, el volumen de PostgreSQL y las imágenes locales del proyecto que Docker Compose pueda eliminar.
+
+Si también se construyó una imagen manualmente mediante `docker build -t hovede-web .`, se puede eliminar ejecutando:
+
+```powershell
+docker image rm hovede-web
+```
+
+Este comando elimina la imagen local `hovede-web` si todavía existe y no está siendo utilizada por otros contenedores. Si Docker informa que la imagen no existe, no es necesario realizar ninguna acción adicional.
 
 **Advertencia: esta operación elimina permanentemente los vuelos guardados en la base de datos de HoVeDe.**
 
