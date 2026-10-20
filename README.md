@@ -22,6 +22,48 @@ HoVeDe permite registrar vuelos, consultar información de vuelos reales mediant
 
 **Importante:** los cálculos son parte de un proyecto académico y no reemplazan procedimientos operativos ni verificaciones de normativa vigente.
 
+## API REST
+
+HoVeDe incluye una API REST desarrollada con Flask que permite gestionar los vuelos almacenados en PostgreSQL mediante solicitudes HTTP y respuestas JSON.
+
+La API utiliza la misma base de datos que la interfaz web. Los vuelos eliminados mediante borrado lógico no aparecen en las consultas.
+
+### Endpoints disponibles
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/vuelos` | Consultar vuelos activos |
+| GET | `/api/vuelos/1` | Consultar un vuelo por ID |
+| POST | `/api/vuelos` | Registrar un vuelo |
+| PUT | `/api/vuelos/1` | Modificar un vuelo |
+| DELETE | `/api/vuelos/1` | Eliminar lógicamente un vuelo |
+
+### Ejemplo de consulta
+
+Con la aplicación iniciada, abrir en el navegador:
+
+`http://localhost:5000/api/vuelos`
+
+La API devuelve los vuelos en formato JSON.
+
+### Ejemplo de registro con PowerShell
+
+```powershell
+$vuelo = @{
+    fecha = "2026-10-20"
+    matricula = "LV-TST"
+    desde = "SABE"
+    hasta = "SAME"
+    horas_vuelo = 2.5
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:5000/api/vuelos" -Method Post -ContentType "application/json" -Body $vuelo
+```
+
+Los métodos POST y PUT requieren los cinco campos indicados en el ejemplo. La matrícula debe respetar el formato `LV-XXX` y las horas de vuelo deben ser positivas.
+
+La API utiliza los códigos HTTP `200` para consultas y modificaciones exitosas, `201` para registros creados, `204` para eliminaciones exitosas, `400` para datos inválidos y `404` cuando el vuelo no existe o fue eliminado.
+
 ## Arquitectura
 
 HoVeDe utiliza dos servicios:
@@ -39,6 +81,7 @@ Los datos se almacenan en un volumen Docker para conservarlos cuando los contene
 HoVeDe-App/
 ├── src/
 │   ├── app.py
+│   ├── api_rest.py
 │   ├── calculadora.py
 │   ├── api_vuelos.py
 │   ├── templates/

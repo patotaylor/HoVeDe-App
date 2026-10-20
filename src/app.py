@@ -5,6 +5,7 @@ import psycopg
 from flask import Flask, abort, redirect, render_template, request, url_for
 
 from api_vuelos import buscar_vuelo
+from api_rest import crear_api
 from calculadora import calcular_descanso, calcular_tiempos, ultimo_aterrizaje
 
 app = Flask(__name__)
@@ -17,6 +18,8 @@ def conectar():
         user=os.getenv("DB_USER", "hovede"),
         password=os.environ["DB_PASSWORD"]
     )
+
+app.register_blueprint(crear_api(conectar))
 
 def obtener_matricula():
     letras = request.form["matricula"].strip().upper()
