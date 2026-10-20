@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HoVeDe - Editar vuelo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>✈ HoVeDe</h1><p>Horas · Vencimientos · Descanso</p>
+        <nav><a href="/">Libro de vuelo</a><a href="/calculadora">Calculadora</a></nav>
+    </header>
+    <main>
+        <section class="seccion">
+            <h2>Editar vuelo</h2>
+            <form action="/modificar/{{ vuelo[0] }}" method="POST" class="formulario">
+                <label>Fecha<input type="date" name="fecha" value="{{ vuelo[1] }}" required></label>
+                <label>Matrícula
+                    <span class="matricula-campo">
+                        <span>LV-</span>
+                        <input name="matricula" value="{{ vuelo[2][3:] }}"
+                            maxlength="3" minlength="3"
+                            pattern="[A-Za-z]{3}" required
+                            style="text-transform: uppercase">
+                    </span>
+                </label>
+                <label>Desde<input name="desde" value="{{ vuelo[3] }}" maxlength="10" required></label>
+                <label>Hasta<input name="hasta" value="{{ vuelo[4] }}" maxlength="10" required></label>
+                <label>Horas de vuelo
+                    <select name="horas_vuelo" required>
+                        {% for i in range(1, 121) %}
+                        <option value="{{ '%.1f'|format(i / 10) }}"
+                                {% if i / 10 == vuelo[5]|float %}selected{% endif %}>
+                            {{ '%.1f'|format(i / 10) }} h
+                        </option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit">Guardar cambios</button>
+                <a class="boton secundario" href="/">Cancelar</a>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

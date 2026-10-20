@@ -1,67 +1,74 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>HoVeDe</title>
-    <a href="/calculadora">Calculadora de actividad y descanso</a>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HoVeDe - Libro de vuelo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>HoVeDe</h1>
-    <h2>Libro de vuelo</h2>
-
-    <form action="/agregar" method="POST">
-        <input type="date" name="fecha" required>
-        <input type="text" name="matricula" placeholder="Matrícula" required>
-        <input type="text" name="desde" placeholder="Origen" required>
-        <input type="text" name="hasta" placeholder="Destino" required>
-        <input type="number" name="horas_vuelo"
-               placeholder="Horas de vuelo" min="0.01" step="0.01" required>
-        <button type="submit">Agregar vuelo</button>
-    </form>
-
-<h2>Vuelos registrados</h2>
-
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Fecha</th>
-        <th>Matrícula</th>
-        <th>Desde</th>
-        <th>Hasta</th>
-        <th>Horas</th>
-        <th>Acciones</th>
-    </tr>
-
-    {% for vuelo in vuelos %}
-    <tr>
-        <td>
-            <form id="editar-{{ vuelo[0] }}"
-                  action="/modificar/{{ vuelo[0] }}" method="POST"></form>
-            <input form="editar-{{ vuelo[0] }}" type="date"
-                   name="fecha" value="{{ vuelo[1] }}" required></td>
-        <td><input form="editar-{{ vuelo[0] }}" name="matricula"
-                   value="{{ vuelo[2] }}" required></td>
-        <td><input form="editar-{{ vuelo[0] }}" name="desde"
-                   value="{{ vuelo[3] }}" required></td>
-        <td><input form="editar-{{ vuelo[0] }}" name="hasta"
-                   value="{{ vuelo[4] }}" required></td>
-        <td><input form="editar-{{ vuelo[0] }}" type="number"
-                   name="horas_vuelo" value="{{ vuelo[5] }}"
-                   min="0.01" step="0.01" required></td>
-        <td>
-            <button form="editar-{{ vuelo[0] }}" type="submit">Guardar</button>
-
-            <form action="/eliminar/{{ vuelo[0] }}" method="POST"
-                  style="display:inline">
-                <button type="submit"
-                        onclick="return confirm('¿Eliminar este vuelo?')">
-                    Eliminar
-                </button>
+    <header>
+        <h1>✈ HoVeDe</h1>
+        <p>Horas · Vencimientos · Descanso</p>
+        <nav><a href="/">Libro de vuelo</a><a href="/calculadora">Calculadora</a></nav>
+    </header>
+    <main>
+        <h2>Libro de vuelo</h2>
+        <section class="seccion">
+            <h3>Registrar un vuelo</h3>
+            <form action="/agregar" method="POST" class="formulario">
+                <label>Fecha<input type="date" name="fecha" required></label>
+                <label>Matrícula
+                    <span class="matricula-campo">
+                        <span>LV-</span>
+                        <input name="matricula" maxlength="3"
+                            minlength="3" pattern="[A-Za-z]{3}"
+                            placeholder="ABC" required
+                            style="text-transform: uppercase">
+                    </span>
+                </label>
+                <label>Desde<input name="desde" maxlength="10" required></label>
+                <label>Hasta<input name="hasta" maxlength="10" required></label>
+                <label>Horas de vuelo
+                    <select name="horas_vuelo" required>
+                        <option value="">Seleccionar</option>
+                        {% for i in range(1, 121) %}
+                        <option value="{{ '%.1f'|format(i / 10) }}">
+                            {{ '%.1f'|format(i / 10) }} h
+                        </option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit">Agregar vuelo</button>
             </form>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-
+        </section>
+        <section class="seccion">
+            <h3>Vuelos registrados</h3>
+            <div class="tabla-contenedor">
+                <table>
+                    <thead><tr><th>Fecha</th><th>Matrícula</th><th>Desde</th><th>Hasta</th><th>Horas</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                    {% for vuelo in vuelos %}
+                    <tr>
+                        <td>{{ vuelo[1].strftime('%d/%m/%Y') }}</td>
+                        <td>{{ vuelo[2] }}</td>
+                        <td>{{ vuelo[3] }}</td>
+                        <td>{{ vuelo[4] }}</td>
+                        <td>{{ vuelo[5] }}</td>
+                        <td class="acciones">
+                            <a class="boton" href="/editar/{{ vuelo[0] }}">Editar</a>
+                            <form action="/eliminar/{{ vuelo[0] }}" method="POST" class="form-eliminar">
+                                <button type="submit" class="eliminar">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6">Todavía no hay vuelos registrados.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
